@@ -110,7 +110,7 @@ class PlayerSetupGUI:
             empty_label = tk.Label(player_window, bg=color)
             empty_label.pack()
 
-            los_button = tk.Button(player_window, text="START", font=("Helvetica", 16),
+            los_button = tk.Button(player_window, text="GO", font=("Helvetica", 16),
                                 command=lambda p=player, money_label=money_label: self.run_los(p, money_label))
             los_button.pack()
 
@@ -140,10 +140,7 @@ class PlayerSetupGUI:
             try:
                 amount = int(entry.get())
                 player.add_money(amount)
-                
-                # Formatieren und anzeigen des Geldbetrags mit Tausendertrennzeichen
-                money_value = locale.format_string ("%d", player.get_money(), grouping=True)
-                money_label.config(text=f"Money: {money_value}$")
+                self.update_money_label(player, money_label)
             except ValueError:
                 pass
             entry.delete(0, tk.END)
@@ -153,8 +150,7 @@ class PlayerSetupGUI:
             try:
                 amount = int(entry.get())
                 player.spend_money(amount)
-                money_value = locale.format_string ("%d", player.get_money(), grouping=True)
-                money_label.config(text=f"Money: {money_value}$")
+                self.update_money_label(player, money_label)
                 if player.get_money() < 0:
                     player.status_label.config(text="Out of Game", fg="red")
                     player.is_active = False
@@ -169,8 +165,7 @@ class PlayerSetupGUI:
         if player.is_active:
             try:
                 player.los()
-                money_value = locale.format_string ("%d", player.get_money(), grouping=True)
-                money_label.config(text=f"Money: {money_value}$")
+                self.update_money_label(player, money_label)
             except ValueError:
                 pass
 
@@ -186,29 +181,24 @@ class PlayerSetupGUI:
                             if payer.get_money() >= amount:
                                 payer.spend_money(amount)
                                 recipient.add_money(amount)
-                                money_value = locale.format_string ("%d", payer.get_money(), grouping=True)
-                                money_label.config(text=f"Money: {money_value}$")
+                                self.update_money_label(payer, money_label)
                                 amount_entry.delete(0, tk.END)
-                                
                                 # Aktualisiere auch das GUI des Empfängers
-                                recipient_money_value = locale.format_string ("%d", recipient.get_money(), grouping=True)
-                                recipient.money_label.config(text=f"Money: {recipient_money_value}")
+                                self.update_money_label(recipient, recipient.money_label)
                                 
                                 return
                             else:
                                 # Überweise verbleibendes Geld an den Empfänger und ändere den Status des Payers
                                 recipient.add_money(payer.get_money())
                                 payer.spend_money(payer.get_money())
-                                money_value = locale.format_string ("%d", payer.get_money(), grouping=True)
-                                money_label.config(text=f"Money: {money_value}$")
+                                self.update_money_label(payer, money_label)
                                 amount_entry.delete(0, tk.END)
                                 money_value = locale.format_string ("%d", payer.get_money(), grouping=True)
                                 money_label.config(text=f"Money: {money_value}$")
                                 payer.status_label.config(text="Out of Game", fg="red")
                                 payer.is_active = False
                                 # Aktualisiere auch das GUI des Empfängers
-                                recipient_money_value = locale.format_string ("%d", recipient.get_money(), grouping=True)
-                                recipient.money_label.config(text=f"Money: {recipient_money_value}")
+                                self.update_money_label(recipient, recipient.money_label)
                                 
                                 payer.remove_player()
                                 money_label.config(fg="red")  # Ändere die Farbe des Geldbetrags, um den Verlust anzuzeigen
@@ -219,6 +209,10 @@ class PlayerSetupGUI:
         # Fehlernachricht anzeigen, wenn der Empfänger, Betrag oder das Geld des Payers ungültig ist
         error_message = tk.Label(self.root, text="Invalid recipient, amount, or insufficient funds", font=("Helvetica", 16), fg="red")
         error_message.pack()
+
+    def update_money_label(self, player, money_label):
+        money_value = locale.format_string("%d", player.get_money(), grouping=True)
+        money_label.config(text=f"Money: {money_value}$")
 
     def get_active_players(self):
         return [player for player in self.players if player.is_active]
