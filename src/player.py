@@ -2,7 +2,7 @@ class Player:
     player_count = 0
     used_names = []
 
-    def __init__(self, name):
+    def __init__(self, name, start_money=15000000, go_bonus=2000000):
         """
         Initializes a new player.
 
@@ -12,17 +12,21 @@ class Player:
         Raises:
             Exception: If the player count exceeds the maximum allowed (8) or if the name is already in use.
         """
+        self.start_money = start_money
+        self.go_bonus = go_bonus
+
         if Player.player_count < 8:
             if name not in Player.used_names:
                 self.name = name
-                self.money = 15000000
+                self.money = self.start_money
                 self.is_active = True
                 Player.used_names.append(name)
                 Player.player_count += 1
             else:
                 raise Exception(f"Player name '{name}' is already in use.")
         else:
-            raise Exception("Maximum of 8 players reached. Cannot create more players.")
+            raise Exception(
+                "Maximum of 8 players reached. Cannot create more players.")
 
     def add_money(self, amount):
         """
@@ -48,7 +52,7 @@ class Player:
         """
         Adds $2,000,000 to the player's balance as part of the 'Go' action.
         """
-        self.add_money(2000000)
+        self.add_money(self.go_bonus)
 
     def get_money(self):
         """
